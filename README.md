@@ -1,8 +1,9 @@
 # PrinterWebSocket.js with Python Server
 
 This project is a WebSocket server in Python along with a vanilla JS client that allows clients to interact with networked printers via WebSocket messages from web applications. It enables clients to list available printers, check printer statuses, and send print jobs directly. The server includes a GUI to monitor connected clients and server activity. 
-I started this project to make a free alternative to JSPM and QZ Tray which allows web-based POS softwares to communicate with printers directly and allow silent printing without any promts to the user. I reversed engineered those, and this PrinterWebsocket work similarly like these aftermarket solutions. Still it's in development phase and I don't have access to a lot of printers that everyone uses. I worked with a Thermal POS printer, it worked well with TSPL printer Raw Commands using this client-server setup.
+I started this project to make a free alternative to JSPM and QZ Tray which allows web-based POS software to communicate with printers directly and allow silent printing without any prompts to the user. I reversed-engineered those, and this PrinterWebsocket works similarly to these aftermarket solutions. Still, it's in the development phase and I don't have access to a lot of printers that everyone uses. I worked with a Thermal POS printer, it worked well with TSPL printer Raw Commands using this client-server setup.
 
+![Framework Diagram](https://blogger.googleusercontent.com/img/a/AVvXsEiyxS9FRJCVf2LswRgUjXbXRbXlaeU3TeSjYGdDPAs8LU6eRUN1owLq9rscS2kzeE8LvfuveQf03ZbZb38Hs6j5O-2AZam9X9isz5OS9M6uJaQpPRtssfGwiMVznLZ-XAfGttp3sUvD8dagG2F1XM7D9rHtPbogrhShjuXNuh1t9rgg2RJEYGh-peqqaFUm=s16000)
 
 ## Features
 
@@ -11,13 +12,13 @@ I started this project to make a free alternative to JSPM and QZ Tray which allo
 -   **Send Print Job**: Send raw TSPL commands to a specified Thermal printer or other printers.
 -   **Real-Time Notifications**: Broadcast printer statuses and job completion details to connected clients.
 -   **Client Management**: Monitor connected clients in real-time through the GUI.
-- **Silent Printing**: This script allows silent printing, which means not to give the user any prompt to confirm the print. Silent Prinitng is suitable for automation and printer servers. 
+- **Silent Printing**: This script allows silent printing, which means not giving the user any prompt to confirm the print. Silent printing is suitable for automation and printer servers. 
 
 ## Project Structure
 
 -   `printer_server.py` - Main server file with WebSocket and printer handling.
 -   `requirements.txt` - Dependencies required to run the server.
--   `PrinterWebsocket.js` - Client js to communicate with the python server.
+-   `PrinterWebsocket.js` - Client js to communicate with the Python server.
 
 ## Requirements
 
