@@ -44,6 +44,14 @@ Install required libraries using `pip`:
     -   **Connected Clients List**: Shows the list of clients connected to the server.
 
 
+## Start with the script 
+
+### Include the Javascript File
+
+Before starting, we have to include the **PrinterWebSocket.js** into the documents body tag where we tend to create the reciept creation or handle print jobs on the website.    
+`<script src="printerWebSocket.js"></script>`
+
+
 ## WebSocket API
 
 ### Available WebSocket Messages
