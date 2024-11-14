@@ -46,10 +46,53 @@ Install required libraries using `pip`:
 
 ## Start with the script 
 
-### Include the Javascript File
+ 1. ###  Include the JavaScript File
+ Before starting, we have to include the **PrinterWebSocket.js** into the documents body tag where we tend to create the receipt creation or handle print jobs on the website.    
 
-Before starting, we have to include the **PrinterWebSocket.js** into the documents body tag where we tend to create the reciept creation or handle print jobs on the website.    
 `<script src="printerWebSocket.js"></script>`
+
+2. ### Initializing the PrinterWebSocket.
+The python server is set to response on the port 8765 on default. We have to change the port from the python server code.
+```
+// Initialize WebSocket connection and wait for it to establish
+PrinterWebSocket.initialize("ws://localhost:8765")
+    .then(() => {
+        
+        console.log('Connected to Printer Server  - ' + PrinterWebSocket.getServerAddress());
+     
+        // Fetch the printers after connection is established
+        console.log('Fetched Printer List');
+        return PrinterWebSocket.fetchPrinters();
+    })
+    .then((printers) => {
+        // Populate printer dropdown with fetched printers
+        console.log('Printer List Updated');
+        populatePrinterDropdown(printers);
+        console.log("Array of printers:", printers); // Log the printer array
+    })
+    .catch((error) => {
+        console.error("Error occurred:", error);
+    });
+```
+
+2. ### Printing a Raw TSPL Data
+After successful initialization of WebSocket connection with the server, we are ready to print.
+```
+var paperSize = printerPaperSelect.value; // Get selected paper size in 80*40 format (mm scale)
+var tsplData =
+    `
+    SIZE ${paperSize.replace('*', ' mm, ')} mm 
+    GAP 3 mm, 0 mm
+    CLS
+    TEXT 25,60,"4",0,1,1,"26 OCT T 07"
+    TEXT 25,120,"5",0,1,1,"105570553"
+    TEXT 25,180,"1",0,1,1,"Liopetra"
+    PRINT 1,1
+`;
+PrinterWebSocket.print(printerName, tsplData);
+
+
+```  
 
 
 ## WebSocket API
