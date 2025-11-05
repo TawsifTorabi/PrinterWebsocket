@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PrinterWebSocket Framework</title>
 
+ 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -15,85 +16,518 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/material.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/python/python.min.js"></script>
 
     <style>
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-purple: #b000ff;
+            --neon-pink: #ff006e;
+            --neon-green: #00ff88;
+            --dark-bg: #0a0e27;
+            --darker-bg: #050816;
+            --card-bg: rgba(15, 20, 45, 0.8);
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #050816 100%);
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Glowing orbs */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 243, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(176, 0, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 20%, rgba(255, 0, 110, 0.1) 0%, transparent 50%);
+            animation: floatOrbs 15s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes floatOrbs {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(50px, 50px) rotate(180deg); }
+        }
+
+        .container, nav, header, footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(10, 14, 39, 0.9) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 4px 30px rgba(0, 243, 255, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
+        }
+
+        .nav-link {
+            color: #e0e0e0 !important;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--neon-cyan);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-link:hover::after {
+            width: 80%;
+        }
+
+        .nav-link:hover {
+            color: var(--neon-cyan) !important;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.8);
+        }
+
+        .dropdown-menu {
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 243, 255, 0.2);
+        }
+
+        .dropdown-item {
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(0, 243, 255, 0.1);
+            color: var(--neon-cyan);
+            padding-left: 25px;
+        }
+
+        /* Header */
         .header {
-            background-color: #343a40;
-            color: white;
-            padding: 40px 0;
+            background: linear-gradient(135deg, rgba(10, 14, 39, 0.8) 0%, rgba(5, 8, 22, 0.9) 100%);
+            backdrop-filter: blur(10px);
+            padding: 100px 0;
+            border-bottom: 2px solid rgba(0, 243, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
         }
 
         .header h1 {
-            margin: 0;
-            font-size: 2.5rem;
-        }
-
-        .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
-        }
-
-        pre {
-            background-color: #272822;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            overflow-x: auto;
-        }
-
-        footer {
-            background-color: #f8f9fa;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .codemirror-wrapper {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 20px;
+            text-shadow: 0 0 60px rgba(0, 243, 255, 0.6);
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+        }
+
+        .header .lead {
+            font-size: 1.5rem;
+            color: #b0b0b0;
+            margin-bottom: 30px;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.6);
+        }
+
+        .btn-outline-light {
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        .btn-outline-light:hover {
+            background: rgba(0, 243, 255, 0.1);
+            border-color: var(--neon-purple);
+            color: var(--neon-purple);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(176, 0, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, rgba(176, 0, 255, 0.8), rgba(255, 0, 110, 0.8));
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+            box-shadow: 0 0 20px rgba(176, 0, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(176, 0, 255, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00ff88, #00ccaa);
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.6);
+        }
+
+        .btn-outline-secondary {
+            border: 2px solid var(--neon-purple);
+            color: var(--neon-purple);
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-secondary:hover {
+            background: rgba(176, 0, 255, 0.1);
+            color: var(--neon-pink);
+            border-color: var(--neon-pink);
+        }
+
+        /* Sections */
+        section {
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 243, 255, 0.2);
+            border-color: rgba(0, 243, 255, 0.4);
+        }
+
+        h2 {
+            color: var(--neon-cyan);
+            font-weight: 700;
+            margin-bottom: 25px;
+            text-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+        }
+
+        h3 {
+            color: var(--neon-purple);
+            font-weight: 600;
+            margin-top: 25px;
+            margin-bottom: 20px;
+        }
+
+        h4 {
+            color: var(--neon-purple);
+            font-weight: 600;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        /* Lists */
+        ul li {
+            margin-bottom: 12px;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        ul li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: var(--neon-cyan);
+            font-size: 1.5rem;
+            line-height: 1.5rem;
+        }
+
+        /* Feature Cards */
+        .feature-card {
+            background: rgba(5, 8, 22, 0.6);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 10px 40px rgba(0, 243, 255, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* CodeMirror */
+        .codemirror-wrapper {
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 243, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .CodeMirror {
+            background: rgba(5, 8, 22, 0.9) !important;
+            height: auto;
+            font-size: 14px;
+        }
+
+        /* Table Styling */
+        .table {
+            color: #e0e0e0;
+            border-color: rgba(0, 243, 255, 0.2);
+        }
+
+        .table thead {
+            background: rgba(0, 243, 255, 0.1);
+            border-bottom: 2px solid var(--neon-cyan);
+        }
+
+        .table th {
+            color: var(--neon-cyan);
+
+            font-weight: 600;
+            border-color: rgba(0, 243, 255, 0.2);
+            background: #1d324d;
+        }
+
+        .table td {
+            border-color: rgba(0, 243, 255, 0.1);
+           	background: #1d324d;
+          	color: white;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(0, 243, 255, 0.05);
+        }
+
+        /* Badge Styling */
+        .badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .badge-cyan {
+            background: rgba(0, 243, 255, 0.2);
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+        }
+
+        .badge-purple {
+            background: rgba(176, 0, 255, 0.2);
+            color: var(--neon-purple);
+            border: 1px solid var(--neon-purple);
+        }
+
+        .badge-green {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+        }
+
+        /* Alert Styling */
+        .alert {
+            background: rgba(176, 0, 255, 0.1);
+            border: 1px solid var(--neon-purple);
+            border-radius: 10px;
+            color: #e0e0e0;
+        }
+
+        .alert-info {
+            background: rgba(0, 243, 255, 0.1);
+            border-color: var(--neon-cyan);
+        }
+
+        /* Links */
+        a {
+            color: var(--neon-cyan);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        a:hover {
+            color: var(--neon-purple);
+            text-shadow: 0 0 10px rgba(176, 0, 255, 0.8);
+        }
+
+        /* Code inline */
+        code {
+            background: rgba(0, 243, 255, 0.1);
+            color: var(--neon-cyan);
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(10, 14, 39, 0.9);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 243, 255, 0.2);
+            padding: 30px;
+            margin-top: 50px;
+            text-align: center;
+            color: #b0b0b0;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--darker-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
         }
     </style>
 </head>
 
 <body>
-  <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">PrinterWebSocket</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand" href="#">⚡ PrinterWebSocket</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <!-- Download Menu -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Download
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Download Python Server</a></li>
-                            <li><a class="dropdown-item" href="#">Download JavaScript Client</a></li>
-                        </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">Features</a>
                     </li>
-                    <!-- Contact Menu -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Contact
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="https://github.com/printerwebsocket/issues" target="_blank">GitHub Issues</a></li>
-                            <li><a class="dropdown-item" href="https://linkedin.com/company/printerwebsocket" target="_blank">LinkedIn</a></li>
-                            <li><a class="dropdown-item" href="https://facebook.com/printerwebsocket" target="_blank">Facebook</a></li>
-                        </ul>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#installation">Installation</a>
                     </li>
-                    <!-- Examples Menu -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Examples
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Multiprinter Switch</a></li>
-                            <li><a class="dropdown-item" href="#">Autonomous Printer</a></li>
-                            <li><a class="dropdown-item" href="#">Test Print</a></li>
-                        </ul>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#quickstart">Quick Start</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#api">API Reference</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#examples">Examples</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">Contact</a>
                     </li>
                 </ul>
             </div>
@@ -104,10 +538,13 @@
     <header class="header text-center">
         <div class="container">
             <h1>PrinterWebSocket Framework</h1>
-            <p class="lead">Build seamless, silent printing for POS systems</p>
+            <p class="lead">A Free Alternative to JSPM & QZ Tray for Silent POS Printing</p>
+            <p class="mb-4">Build seamless web-based POS systems with direct printer access</p>
             <div>
-                <button class="btn btn-primary me-2">Get Started</button>
-                <button class="btn btn-outline-light">Learn More</button>
+                <a href="https://github.com/TawsifTorabi/PrinterWebsocket" target="_blank" class="btn btn-primary me-3">
+                    View on GitHub
+                </a>
+                <a href="#quickstart" class="btn btn-outline-light">Get Started</a>
             </div>
         </div>
     </header>
@@ -118,104 +555,883 @@
         <section class="mb-5">
             <h2 class="mb-3">Introduction</h2>
             <p>
-                PrinterWebSocket is a lightweight framework designed to connect web apps with POS printers using WebSockets. 
-                It supports silent printing, real-time monitoring, and provides robust APIs for seamless integration.
+                PrinterWebSocket is a lightweight, open-source framework that enables web applications to communicate directly with 
+                POS printers through WebSocket connections. Built as a free alternative to commercial solutions like JSPM and QZ Tray, 
+                this framework allows silent printing without user prompts, making it perfect for automation and POS systems.
             </p>
-            <button class="btn btn-primary me-2">Documentation</button>
-            <button class="btn btn-secondary">Example Projects</button>
+            <p>
+                The framework consists of a Python WebSocket server with a built-in GUI for monitoring, and a vanilla JavaScript client 
+                that seamlessly integrates into any web application. It supports thermal POS printers using TSPL raw commands and provides 
+                real-time printer status monitoring.
+            </p>
+            <div class="alert alert-info mt-4">
+                <strong>⚠️ Development Phase:</strong> This project is actively being developed. While it works well with thermal POS 
+                printers, support for additional printer models is ongoing. Contributions are welcome!
+            </div>
         </section>
 
         <!-- Features Section -->
+        <section id="features" class="mb-5">
+            <h2 class="mb-4">Key Features</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">🖨️</div>
+                        <h5>Silent Printing</h5>
+                        <p>Print directly without user prompts or confirmation dialogs. Perfect for automated POS systems and kiosk applications.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">🔌</div>
+                        <h5>WebSocket Communication</h5>
+                        <p>Real-time bidirectional communication between web apps and printers using WebSocket protocol.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h5>Real-Time Monitoring</h5>
+                        <p>Built-in GUI to monitor connected clients, server activity, and printer statuses in real-time.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h5>Printer Discovery</h5>
+                        <p>Automatically list all available printers connected to the server with their current status.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h5>TSPL Support</h5>
+                        <p>Native support for TSPL commands for thermal POS printers with raw command execution.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">🌐</div>
+                        <h5>Cross-Platform</h5>
+                        <p>Works on Windows, macOS, and Linux. Currently optimized for Windows with pywin32.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Section -->
         <section class="mb-5">
-            <h2 class="mb-3">Key Features</h2>
+            <h2 class="mb-3">Architecture</h2>
             <div class="row">
                 <div class="col-md-6">
+                    <h4>Server Components</h4>
                     <ul>
-                        <li>Seamless WebSocket communication for real-time interactions</li>
-                        <li>Supports multiple printer models and types</li>
+                        <li><code>printer_server.py</code> - Main WebSocket server with printer handling</li>
+                        <li><code>requirements.txt</code> - Python dependencies</li>
+                        <li>Built-in GUI for monitoring and client management</li>
+                        <li>Real-time logging and error tracking</li>
                     </ul>
                 </div>
                 <div class="col-md-6">
+                    <h4>Client Components</h4>
                     <ul>
-                        <li>Customizable API for tailored printing needs</li>
-                        <li>Cross-platform compatibility (Windows, MacOS, Linux)</li>
+                        <li><code>PrinterWebSocket.js</code> - Vanilla JavaScript client library</li>
+                        <li>Promise-based API for async operations</li>
+                        <li>Automatic connection management</li>
+                        <li>Event-driven architecture</li>
                     </ul>
                 </div>
             </div>
         </section>
 
-        <!-- Example Section -->
-        <section class="mb-5">
-            <h2 class="mb-3">Code Examples</h2>
+        <!-- Installation Section -->
+        <section id="installation" class="mb-5">
+            <h2 class="mb-3">Installation & Setup</h2>
+            
+            <h3>Prerequisites</h3>
+            <p>Make sure you have the following installed:</p>
+            <ul class="list-unstyled">
+                <li><span class="badge badge-cyan">Python 3.x</span></li>
+                <li><span class="badge badge-purple">websockets</span> - WebSocket communication</li>
+                <li><span class="badge badge-green">pywin32</span> - Windows printer handling</li>
+                <li><span class="badge badge-cyan">tkinter</span> - GUI (usually included with Python)</li>
+            </ul>
 
-            <!-- Basic Example -->
-            <h4>Initialize the Framework</h4>
+            <h3 class="mt-4">Step 1: Install Dependencies</h3>
             <div class="codemirror-wrapper">
-                <textarea id="code1">
-PrinterWebSocket.initialize("ws://localhost:8765")
-    .then(() => console.log('Connection established'))
-    .catch((err) => console.error('Error:', err));</textarea>
+                <textarea id="code-install">pip install websockets pywin32</textarea>
             </div>
 
-            <!-- Advanced Example -->
-            <h4>Send a Print Job</h4>
+            <h3>Step 2: Start the Server</h3>
+            <p>Run the WebSocket server with the built-in GUI:</p>
             <div class="codemirror-wrapper">
-                <textarea id="code2">
-const tsplData = `
-SIZE 100 mm, 50 mm
+                <textarea id="code-server">python printer_server.py</textarea>
+            </div>
+            <p class="mt-3">The server will start on port <code>8765</code> by default. You can modify this in the server code.</p>
+
+            <h3>Step 3: Include Client Library</h3>
+            <p>Add the JavaScript client to your web application:</p>
+            <div class="codemirror-wrapper">
+                <textarea id="code-client-include"><script src="printerWebSocket.js"></script></textarea>
+            </div>
+        </section>
+
+        <!-- Quick Start Section -->
+        <section id="quickstart" class="mb-5">
+            <h2 class="mb-3">Quick Start Guide</h2>
+
+            <h3>Initialize Connection</h3>
+            <p>Establish a WebSocket connection to the printer server:</p>
+            <div class="codemirror-wrapper">
+                <textarea id="code-init">// Initialize WebSocket connection
+PrinterWebSocket.initialize("ws://localhost:8765")
+    .then(() => {
+        console.log('Connected to Printer Server');
+        console.log('Server Address:', PrinterWebSocket.getServerAddress());
+        
+        // Fetch available printers
+        return PrinterWebSocket.fetchPrinters();
+    })
+    .then((printers) => {
+        console.log('Available Printers:', printers);
+        populatePrinterDropdown(printers);
+    })
+    .catch((error) => {
+        console.error("Connection Error:", error);
+    });</textarea>
+            </div>
+
+            <h3 class="mt-4">Send a Print Job</h3>
+            <p>Send TSPL commands to print a receipt or label:</p>
+            <div class="codemirror-wrapper">
+                <textarea id="code-print">// Define paper size and TSPL commands
+var paperSize = "80*40"; // 80mm x 40mm
+var printerName = "Gprinter GP-3120TUC";
+
+var tsplData = `
+SIZE 80 mm, 40 mm
 GAP 3 mm, 0 mm
-TEXT 25,25,"TSS24.BF2",0,1,1,"Hello Printer"
+CLS
+TEXT 25,60,"4",0,1,1,"26 OCT T 07"
+TEXT 25,120,"5",0,1,1,"105570553"
+TEXT 25,180,"1",0,1,1,"Liopetra"
 PRINT 1,1
 `;
-PrinterWebSocket.print("Printer_Name", tsplData);
-                </textarea>
+
+// Send print job
+PrinterWebSocket.print(printerName, tsplData)
+    .then(() => {
+        console.log('Print job sent successfully');
+    })
+    .catch((error) => {
+        console.error('Print error:', error);
+    });</textarea>
             </div>
 
-            <button class="btn btn-primary me-2">View Full Examples</button>
-            <button class="btn btn-secondary">Explore API</button>
+            <h3 class="mt-4">Complete Example</h3>
+            <p>A full working example with printer selection:</p>
+            <div class="codemirror-wrapper">
+                <textarea id="code-complete"><!DOCTYPE html>
+<html>
+<head>
+    <title>Printer WebSocket Demo</title>
+    <script src="printerWebSocket.js"></script>
+</head>
+<body>
+    <h1>POS Printer Demo</h1>
+    
+    <select id="printerSelect">
+        <option>Select Printer...</option>
+    </select>
+    
+    <button onclick="printReceipt()">Print Receipt</button>
+
+    <script>
+        // Initialize connection
+        PrinterWebSocket.initialize("ws://localhost:8765")
+            .then(() => PrinterWebSocket.fetchPrinters())
+            .then(printers => {
+                const select = document.getElementById('printerSelect');
+                printers.forEach(printer => {
+                    const option = document.createElement('option');
+                    option.value = printer;
+                    option.text = printer;
+                    select.add(option);
+                });
+            });
+
+        function printReceipt() {
+            const printer = document.getElementById('printerSelect').value;
+            const tspl = `
+                SIZE 80 mm, 40 mm
+                GAP 3 mm, 0 mm
+                CLS
+                TEXT 25,25,"4",0,1,1,"Test Print"
+                PRINT 1,1
+            `;
+            PrinterWebSocket.print(printer, tspl);
+        }
+    </script>
+</body>
+</html></textarea>
+            </div>
+        </section>
+
+        <!-- API Reference Section -->
+        <section id="api" class="mb-5">
+            <h2 class="mb-3">API Reference</h2>
+            
+            <h3>1. List Available Printers</h3>
+            <p>Retrieve all printers connected to the server.</p>
+            
+            <h4>Request</h4>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>call</code></td>
+                            <td>"printers.find"</td>
+                        </tr>
+                        <tr>
+                            <td><code>uid</code></td>
+                            <td>"unique-request-id"</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="codemirror-wrapper">
+                <textarea id="code-api-find">{ 
+    "call": "printers.find", 
+    "uid": "hHOIa02asXJ" 
+}</textarea>
+            </div>
+
+            <h4>Response</h4>
+            <div class="codemirror-wrapper">
+                <textarea id="code-api-find-response">{ 
+    "uid": "hHOIa02asXJ", 
+    "result": ["Printer1", "Printer2", "Printer3"], 
+    "status_code": 0 
+}</textarea>
+            </div>
+
+            <h3 class="mt-5">2. Get Server Version</h3>
+            <p>Check the current version of the printer server.</p>
+            
+            <h4>Request</h4>
+            <div class="codemirror-wrapper">
+                <textarea id="code-api-version">{ 
+    "call": "server.version", 
+    "uid": "hHOIa02asXJ" 
+}</textarea>
+            </div>
+
+            <h4>Response</h4>
+            <div class="codemirror-wrapper">
+                <textarea id="code-api-version-response">{ 
+    "uid": "hHOIa02asXJ", 
+    "result": "0.1.0", 
+    "info": "serverVersion", 
+    "status_code": 0 
+}</textarea>
+            </div>
+
+            <h3 class="mt-5">3. Send Print Job</h3>
+            <p>Send TSPL commands to a specific printer for printing.</p>
+            
+            <h4>Request</h4>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>call</code></td>
+                            <td>"print"</td>
+                        </tr>
+                        <tr>
+                            <td><code>uid</code></td>
+                            <td>"unique-request-id"</td>
+                        </tr>
+                        <tr>
+                            <td><code>params.printer.name</code></td>
+                            <td>"Gprinter GP-3120TUC"</td>
+                        </tr>
+                        <tr>
+                            <td><code>params.data</code></td>
+                            <td>Array of TSPL commands</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="codemirror-wrapper">
+                <textarea id="code-api-print">{ 
+    "call": "print", 
+    "uid": "unique-request-id", 
+    "params": { 
+        "printer": { 
+            "name": "Gprinter GP-3120TUC" 
+        }, 
+        "data": [ 
+            "SIZE 100 mm, 150 mm", 
+            "GAP 3 mm, 0", 
+            "TEXT 100,100,\"TSS24.BF2\",0,1,1,\"Hello World\"", 
+            "PRINT 1,1" 
+        ] 
+    } 
+}</textarea>
+            </div>
+
+            <h4>Success Response</h4>
+            <div class="codemirror-wrapper">
+                <textarea id="code-api-print-success">{ 
+    "uid": "unique-request-id", 
+    "status": "success", 
+    "message": "Printed on Gprinter GP-3120TUC", 
+    "status_code": 0 
+}</textarea>
+            </div>
+
+            <h4>Error Response</h4>
+            <div class="codemirror-wrapper">
+                <textarea id="code-api-print-error">{ 
+    "uid": "unique-request-id", 
+    "status": "error", 
+    "message": "Invalid printer or TSPL data", 
+    "status_code": 3 
+}</textarea>
+            </div>
+
+            <h3 class="mt-5">4. Check Printer Status</h3>
+            <div class="alert alert-info">
+                <strong>⚠️ Experimental Feature:</strong> This feature is still in testing and may not work with all printers. 
+                There are limitations in the pywin32 library for retrieving real-time printer status.
+            </div>
+            
+            <h4>Request</h4>
+            <div class="codemirror-wrapper">
+                <textarea id="code-api-status">{ 
+    "call": "printerStatus", 
+    "uid": "unique-request-id", 
+    "PrinterName": "Gprinter GP-3120TUC" 
+}</textarea>
+            </div>
+
+            <h4>Response Examples</h4>
+            <p><strong>Idle Printer:</strong></p>
+            <div class="codemirror-wrapper">
+                <textarea id="code-api-status-idle">{ 
+    "uid": "unique-request-id", 
+    "status": "Printer status retrieved", 
+    "PrinterName": "Gprinter GP-3120TUC", 
+    "status_code": 0 
+}</textarea>
+            </div>
+
+            <p><strong>Printing:</strong></p>
+            <div class="codemirror-wrapper">
+                <textarea id="code-api-status-printing">{ 
+    "uid": "unique-request-id", 
+    "status": "Printer status retrieved", 
+    "PrinterName": "Gprinter GP-3120TUC", 
+    "status_code": 1 
+}</textarea>
+            </div>
+
+            <p><strong>Error State:</strong></p>
+            <div class="codemirror-wrapper">
+                <textarea id="code-api-status-error">{ 
+    "uid": "unique-request-id", 
+    "status": "Printer status retrieved", 
+    "PrinterName": "Gprinter GP-3120TUC", 
+    "status_code": 3 
+}</textarea>
+            </div>
+
+            <h3 class="mt-5">Status Codes</h3>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Status</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge badge-green">0</span></td>
+                            <td>Success / Idle</td>
+                            <td>Operation completed successfully or printer is idle</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-cyan">1</span></td>
+                            <td>Printing</td>
+                            <td>Printer is currently processing a print job</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-purple">3</span></td>
+                            <td>Error</td>
+                            <td>Printer encountered an error or operation failed</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Examples Section -->
+        <section id="examples" class="mb-5">
+            <h2 class="mb-3">Use Cases & Examples</h2>
+            
+            <h3>Restaurant POS System</h3>
+            <p>Print kitchen orders and customer receipts automatically:</p>
+            <div class="codemirror-wrapper">
+                <textarea id="code-example-restaurant">// Print kitchen order
+function printKitchenOrder(orderData) {
+    const tspl = `
+        SIZE 80 mm, 100 mm
+        GAP 3 mm, 0 mm
+        CLS
+        TEXT 25,25,"4",0,1,1,"KITCHEN ORDER #${orderData.id}"
+        TEXT 25,80,"3",0,1,1,"Table: ${orderData.table}"
+        TEXT 25,130,"2",0,1,1,"${orderData.items.join(', ')}"
+        TEXT 25,180,"2",0,1,1,"Time: ${new Date().toLocaleTimeString()}"
+        PRINT 1,1
+    `;
+    
+    PrinterWebSocket.print("Kitchen Printer", tspl);
+}
+
+// Print customer receipt
+function printReceipt(orderData) {
+    const tspl = `
+        SIZE 80 mm, 150 mm
+        GAP 3 mm, 0 mm
+        CLS
+        TEXT 25,25,"4",0,1,1,"RECEIPT"
+        TEXT 25,75,"2",0,1,1,"Order #${orderData.id}"
+        TEXT 25,110,"2",0,1,1,"Total: ${orderData.total}"
+        TEXT 25,145,"1",0,1,1,"Thank you for dining with us!"
+        PRINT 1,1
+    `;
+    
+    PrinterWebSocket.print("Receipt Printer", tspl);
+}</textarea>
+            </div>
+
+            <h3 class="mt-4">Retail Label Printing</h3>
+            <p>Generate product labels with barcodes:</p>
+            <div class="codemirror-wrapper">
+                <textarea id="code-example-retail">function printProductLabel(product) {
+    const tspl = `
+        SIZE 50 mm, 30 mm
+        GAP 2 mm, 0 mm
+        CLS
+        TEXT 10,10,"3",0,1,1,"${product.name}"
+        TEXT 10,50,"2",0,1,1,"Price: ${product.price}"
+        BARCODE 10,90,"128",60,1,0,2,2,"${product.barcode}"
+        PRINT 1,1
+    `;
+    
+    PrinterWebSocket.print("Label Printer", tspl);
+}</textarea>
+            </div>
+
+            <h3 class="mt-4">Shipping Label System</h3>
+            <p>Create shipping labels with tracking information:</p>
+            <div class="codemirror-wrapper">
+                <textarea id="code-example-shipping">function printShippingLabel(shipment) {
+    const tspl = `
+        SIZE 100 mm, 150 mm
+        GAP 3 mm, 0 mm
+        CLS
+        TEXT 25,25,"4",0,1,1,"SHIP TO:"
+        TEXT 25,70,"2",0,1,1,"${shipment.recipient}"
+        TEXT 25,105,"2",0,1,1,"${shipment.address}"
+        TEXT 25,140,"2",0,1,1,"${shipment.city}, ${shipment.zip}"
+        BARCODE 25,190,"128",80,1,0,2,2,"${shipment.tracking}"
+        TEXT 25,290,"1",0,1,1,"Tracking: ${shipment.tracking}"
+        PRINT 1,1
+    `;
+    
+    PrinterWebSocket.print("Shipping Printer", tspl);
+}</textarea>
+            </div>
+        </section>
+
+        <!-- Testing Section -->
+        <section class="mb-5">
+            <h2 class="mb-3">Testing & Development</h2>
+            
+            <h3>WebSocket Testing Tools</h3>
+            <p>You can test the server using various WebSocket clients:</p>
+            <ul>
+                <li><strong>Browser DevTools:</strong> Use the WebSocket API in the browser console</li>
+                <li><strong>Postman:</strong> Create WebSocket requests for testing</li>
+                <li><strong>wscat:</strong> Command-line WebSocket client</li>
+            </ul>
+
+            <h3 class="mt-4">Example Test with Browser Console</h3>
+            <div class="codemirror-wrapper">
+                <textarea id="code-test-browser">// Open browser console and run:
+const ws = new WebSocket('ws://localhost:8765');
+
+ws.onopen = () => {
+    console.log('Connected');
+    
+    // Test: Get printer list
+    ws.send(JSON.stringify({
+        call: "printers.find",
+        uid: "test-123"
+    }));
+};
+
+ws.onmessage = (event) => {
+    console.log('Response:', JSON.parse(event.data));
+};</textarea>
+            </div>
+
+            <h3 class="mt-4">Server GUI Features</h3>
+            <p>The built-in GUI provides:</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul>
+                        <li>Real-time server activity logging</li>
+                        <li>Connected clients list with details</li>
+                        <li>Error tracking and diagnostics</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul>
+                        <li>Connection status monitoring</li>
+                        <li>Print job history</li>
+                        <li>Server configuration display</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Troubleshooting Section -->
+        <section class="mb-5">
+            <h2 class="mb-3">Troubleshooting</h2>
+            
+            <h3>Common Issues</h3>
+            
+            <h4>Connection Refused</h4>
+            <p><strong>Problem:</strong> Cannot connect to <code>ws://localhost:8765</code></p>
+            <p><strong>Solution:</strong></p>
+            <ul>
+                <li>Ensure the Python server is running</li>
+                <li>Check if port 8765 is not blocked by firewall</li>
+                <li>Verify the server address and port in your client code</li>
+            </ul>
+
+            <h4 class="mt-4">Printer Not Found</h4>
+            <p><strong>Problem:</strong> Printer doesn't appear in the list</p>
+            <p><strong>Solution:</strong></p>
+            <ul>
+                <li>Verify printer is connected and powered on</li>
+                <li>Check printer drivers are installed correctly</li>
+                <li>Ensure printer is set as online in Windows</li>
+                <li>Restart the printer server</li>
+            </ul>
+
+            <h4 class="mt-4">Print Job Fails</h4>
+            <p><strong>Problem:</strong> Print command returns error</p>
+            <p><strong>Solution:</strong></p>
+            <ul>
+                <li>Verify TSPL commands are correctly formatted</li>
+                <li>Check printer supports TSPL command set</li>
+                <li>Ensure printer has paper loaded</li>
+                <li>Review server logs for detailed error messages</li>
+            </ul>
+
+            <h4 class="mt-4">Windows-Specific Issues</h4>
+            <p><strong>Problem:</strong> pywin32 installation errors</p>
+            <p><strong>Solution:</strong></p>
+            <ul>
+                <li>Use <code>pip install pywin32</code> with administrator privileges</li>
+                <li>Run <code>python Scripts/pywin32_postinstall.py -install</code> after installation</li>
+                <li>Ensure Visual C++ redistributables are installed</li>
+            </ul>
+        </section>
+
+        <!-- Limitations Section -->
+        <section class="mb-5">
+            <h2 class="mb-3">Known Limitations</h2>
+            <div class="alert">
+                <h5>Platform Compatibility</h5>
+                <p>Currently optimized for Windows environments using pywin32. Support for macOS and Linux is planned but may require additional development for printer interactions.</p>
+            </div>
+            <div class="alert alert-info">
+                <h5>Printer Status Retrieval</h5>
+                <p>The printer status feature has limitations due to pywin32 library constraints. It can create print jobs successfully, but real-time status monitoring may not work with all printer models.</p>
+            </div>
+            <div class="alert">
+                <h5>Printer Model Support</h5>
+                <p>Tested primarily with thermal POS printers using TSPL commands. Support for other printer types and command languages is in development. Community testing and contributions are welcome!</p>
+            </div>
+        </section>
+
+        <!-- Contributing Section -->
+        <section class="mb-5">
+            <h2 class="mb-3">Contributing</h2>
+            <p>PrinterWebSocket is an open-source project and welcomes contributions! Here's how you can help:</p>
+            
+            <div class="row g-4 mt-3">
+                <div class="col-md-6">
+                    <div class="feature-card">
+                        <h5>🐛 Report Issues</h5>
+                        <p>Found a bug? Report it on our <a href="https://github.com/TawsifTorabi/PrinterWebsocket/issues" target="_blank">GitHub Issues</a> page with details about your printer model and environment.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="feature-card">
+                        <h5>🔧 Submit Pull Requests</h5>
+                        <p>Have a fix or new feature? Fork the repository, make your changes, and submit a pull request for review.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="feature-card">
+                        <h5>📝 Improve Documentation</h5>
+                        <p>Help others by improving documentation, adding examples, or translating content.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="feature-card">
+                        <h5>🧪 Test with Different Printers</h5>
+                        <p>Test with various printer models and share your results to improve compatibility.</p>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- Download Section -->
         <section class="mb-5">
             <h2 class="mb-3">Downloads</h2>
-            <p>Get the latest version of PrinterWebSocket:</p>
-            <button class="btn btn-success me-2">Download v1.0</button>
-            <button class="btn btn-outline-secondary">Release Notes</button>
+            <p>Get the latest version of PrinterWebSocket from GitHub:</p>
+            <div class="mt-4">
+                <a href="https://github.com/TawsifTorabi/PrinterWebsocket/archive/refs/heads/main.zip" class="btn btn-success me-2">
+                    Download Latest Version
+                </a>
+                <a href="https://github.com/TawsifTorabi/PrinterWebsocket/releases" target="_blank" class="btn btn-outline-secondary">
+                    View All Releases
+                </a>
+            </div>
+            
+            <h3 class="mt-5">Project Files</h3>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>printer_server.py</code></td>
+                            <td>Main WebSocket server with printer handling and GUI</td>
+                        </tr>
+                        <tr>
+                            <td><code>PrinterWebSocket.js</code></td>
+                            <td>Vanilla JavaScript client library for web applications</td>
+                        </tr>
+                        <tr>
+                            <td><code>requirements.txt</code></td>
+                            <td>Python dependencies list</td>
+                        </tr>
+                        <tr>
+                            <td><code>README.md</code></td>
+                            <td>Project documentation and usage guide</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
 
         <!-- Contact Section -->
-        <section class="mb-5">
-            <h2 class="mb-3">Contact Us</h2>
+        <section id="contact" class="mb-5">
+            <h2 class="mb-3">Contact & Support</h2>
             <p>Have questions or need support? Get in touch with us:</p>
-            <ul class="list-unstyled">
-                <li><strong>Email:</strong> <a href="mailto:support@printerwebsocket.com">support@printerwebsocket.com</a></li>
-                <li><strong>Twitter:</strong> <a href="https://twitter.com/printerwebsocket" target="_blank">@PrinterWebSocket</a></li>
-                <li><strong>GitHub:</strong> <a href="https://github.com/printerwebsocket" target="_blank">PrinterWebSocket on GitHub</a></li>
-            </ul>
-            <button class="btn btn-primary">Submit an Issue</button>
+            
+            <div class="row g-4 mt-3">
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon">📧</div>
+                        <h5>Email</h5>
+                        <p><a href="mailto:support@printerwebsocket.com">support@printerwebsocket.com</a></p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon">💬</div>
+                        <h5>GitHub</h5>
+                        <p><a href="https://github.com/TawsifTorabi/PrinterWebsocket" target="_blank">Open an Issue</a></p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon">🐦</div>
+                        <h5>Twitter</h5>
+                        <p><a href="https://twitter.com/printerwebsocket" target="_blank">@PrinterWebSocket</a></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5 text-center">
+                <h3>Community Links</h3>
+                <p class="mb-4">Connect with the PrinterWebSocket community</p>
+                <a href="https://github.com/TawsifTorabi/PrinterWebsocket/issues" target="_blank" class="btn btn-primary me-2">GitHub Issues</a>
+                <a href="https://linkedin.com/company/printerwebsocket" target="_blank" class="btn btn-secondary me-2">LinkedIn</a>
+                <a href="https://facebook.com/printerwebsocket" target="_blank" class="btn btn-secondary">Facebook</a>
+            </div>
+        </section>
+
+        <!-- License Section -->
+        <section class="mb-5">
+            <h2 class="mb-3">License & Credits</h2>
+            <p>PrinterWebSocket is an open-source project created as a free alternative to commercial solutions like JSPM and QZ Tray.</p>
+            <p class="mt-3">
+                <strong>Author:</strong> <a href="https://github.com/TawsifTorabi" target="_blank">Tawsif Torabi</a><br>
+                <strong>Repository:</strong> <a href="https://github.com/TawsifTorabi/PrinterWebsocket" target="_blank">github.com/TawsifTorabi/PrinterWebsocket</a>
+            </p>
+            <div class="alert alert-info mt-4">
+                <p class="mb-0">This project is provided as-is for educational and commercial use. While it's free to use, contributions and support are always welcome to help improve the framework for everyone.</p>
+            </div>
         </section>
     </div>
 
     <!-- Footer -->
     <footer>
-        <p>© 2024 PrinterWebSocket | Built with love and powered by WebSockets</p>
+        <div class="container">
+            <p class="mb-2">© 2024 PrinterWebSocket | Built with ❤️ and powered by WebSockets</p>
+            <p class="mb-0">
+                <a href="https://github.com/TawsifTorabi/PrinterWebsocket" target="_blank">GitHub</a> | 
+                <a href="https://github.com/TawsifTorabi/PrinterWebsocket/issues" target="_blank">Report Issue</a> | 
+                <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Back to Top</a>
+            </p>
+        </div>
     </footer>
 
     <script>
         // Initialize CodeMirror for syntax highlighting
         document.addEventListener("DOMContentLoaded", function () {
-            CodeMirror.fromTextArea(document.getElementById("code1"), {
+            // Installation examples
+            CodeMirror.fromTextArea(document.getElementById("code-install"), {
+                mode: "shell",
+                theme: "material",
+                lineNumbers: true,
+                readOnly: true
+            });
+
+            CodeMirror.fromTextArea(document.getElementById("code-server"), {
+                mode: "shell",
+                theme: "material",
+                lineNumbers: true,
+                readOnly: true
+            });
+
+            CodeMirror.fromTextArea(document.getElementById("code-client-include"), {
+                mode: "htmlmixed",
+                theme: "material",
+                lineNumbers: true,
+                readOnly: true
+            });
+
+            // Quick start examples
+            CodeMirror.fromTextArea(document.getElementById("code-init"), {
                 mode: "javascript",
                 theme: "material",
                 lineNumbers: true,
                 readOnly: true
             });
 
-            CodeMirror.fromTextArea(document.getElementById("code2"), {
+            CodeMirror.fromTextArea(document.getElementById("code-print"), {
                 mode: "javascript",
                 theme: "material",
                 lineNumbers: true,
                 readOnly: true
+            });
+
+            CodeMirror.fromTextArea(document.getElementById("code-complete"), {
+                mode: "htmlmixed",
+                theme: "material",
+                lineNumbers: true,
+                readOnly: true
+            });
+
+            // API examples
+            const apiCodes = [
+                "code-api-find", "code-api-find-response",
+                "code-api-version", "code-api-version-response",
+                "code-api-print", "code-api-print-success", "code-api-print-error",
+                "code-api-status", "code-api-status-idle", "code-api-status-printing", "code-api-status-error"
+            ];
+
+            apiCodes.forEach(id => {
+                CodeMirror.fromTextArea(document.getElementById(id), {
+                    mode: "javascript",
+                    theme: "material",
+                    lineNumbers: true,
+                    readOnly: true
+                });
+            });
+
+            // Use case examples
+            CodeMirror.fromTextArea(document.getElementById("code-example-restaurant"), {
+                mode: "javascript",
+                theme: "material",
+                lineNumbers: true,
+                readOnly: true
+            });
+
+            CodeMirror.fromTextArea(document.getElementById("code-example-retail"), {
+                mode: "javascript",
+                theme: "material",
+                lineNumbers: true,
+                readOnly: true
+            });
+
+            CodeMirror.fromTextArea(document.getElementById("code-example-shipping"), {
+                mode: "javascript",
+                theme: "material",
+                lineNumbers: true,
+                readOnly: true
+            });
+
+            // Testing example
+            CodeMirror.fromTextArea(document.getElementById("code-test-browser"), {
+                mode: "javascript",
+                theme: "material",
+                lineNumbers: true,
+                readOnly: true
+            });
+
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    const href = this.getAttribute('href');
+                    if (href !== '#' && document.querySelector(href)) {
+                        e.preventDefault();
+                        document.querySelector(href).scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
             });
         });
     </script>
